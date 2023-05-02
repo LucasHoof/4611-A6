@@ -122,16 +122,15 @@ export class Billboard extends gfx.Transform3
         // Loop through all the vertices in the billboard mesh and project them out
         // into the world.  To accomplish this, we use a pick ray to perform an 
         // intersection test with the projection plane.
+        
         const point = new gfx.Vector2(this.vertices[0].x, this.vertices[0].y);
         const ray = new gfx.Ray();
-        for(let i=0; i < this.vertices.length; i++)
-        {
+        for(let i=0; i < this.vertices.length; i++) {
             point.set(this.vertices[i].x, this.vertices[i].y);
             ray.setPickRay(point, camera);
 
             const intersection = ray.intersectsPlane(projectionPlane);
-            if(intersection)
-            {
+            if(intersection) {
                 this.vertices[i].copy(intersection);
                 this.vertices[i].subtract(this.position);
                 this.vertices[i].rotate(rotationInverse);
@@ -207,12 +206,24 @@ export class Billboard extends gfx.Transform3
         // the billboard and sky are both trying to render on top of each other. To 
         // fix this, you can move the projected vertex slightly closer to the camera
         // using the direction vector of the pick ray.
-        
-       
 
         // TO DO: ADD YOUR CODE HERE
+        
+        const point = new gfx.Vector2(this.vertices[0].x, this.vertices[0].y);
+        const ray = new gfx.Ray();
+        for(let i=0; i < this.vertices.length; i++){
+            point.set(this.vertices[i].x, this.vertices[i].y);
+            ray.setPickRay(point, camera);
 
+            const intersection = ray.intersectsMesh(sky);
+            if(intersection){
+                this.vertices[i].copy(intersection);
+                this.vertices[i].subtract(this.position);
+                this.vertices[i].subtract(gfx.Vector3.multiplyScalar(ray.direction, 0.3));
+            }
+        }
 
+        this.mesh.setVertices(this.vertices);
         
     }
 

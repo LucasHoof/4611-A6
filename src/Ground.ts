@@ -82,6 +82,11 @@ export class Ground extends gfx.Mesh
 
         // TO DO: ADD YOUR CODE HERE
 
+        const groundPlaneUp = new gfx.Vector3(0, 1, 0);
+        const EndToStart = gfx.Vector3.subtract(groundEndPoint, groundStartPoint);
+        const groundPlaneNormal = gfx.Vector3.cross(EndToStart, groundPlaneUp);
+        const groundPlane = new gfx.Plane(groundStartPoint, groundPlaneNormal);
+
 
 
         // 2. Loop through the screenPath vertices to project the 2D stroke into 3D so
@@ -91,9 +96,23 @@ export class Ground extends gfx.Mesh
         // ray.intersectPlane() method to check for an intersection with a gfx.Plane.
 
 
-
+        
         // TO DO: ADD YOUR CODE HERE
 
+        const ray = new gfx.Ray();
+        const point = new gfx.Vector2(this.vertices[0].x, this.vertices[0].y);
+        let silhouetteCurve: gfx.Vector3[];
+        silhouetteCurve = [];
+
+        for(let i = 0; i < screenPath.length; i++){
+            point.set(screenPath[i].x, screenPath[i].y);
+            ray.setPickRay(point, camera);
+
+            const intersection = ray.intersectsPlane(groundPlane);
+            if(intersection){
+                silhouetteCurve.push(intersection);
+            }
+        }
 
 
         // 3. Loop through all of the vertices of the ground mesh, and adjust the
@@ -104,6 +123,19 @@ export class Ground extends gfx.Mesh
 
 
         // TO DO: ADD YOUR CODE HERE
+
+        for(let i = 0; i < this.vertices.length; i++){
+            let closest = groundPlane.project(this.vertices[i])
+            let h = this.computeH(closest, silhouetteCurve, groundPlane);
+
+            if(h != 0){
+                let d = groundPlane.distanceTo(this.vertices[i]);
+                let y = this.vertices[i].y;
+                let wOfd = Math.max(0, 1 - Math.pow((d/5), 2));
+                this.vertices[i].y = (1-wOfd) * y + wOfd * h;
+            }
+
+        }
 
 
 
